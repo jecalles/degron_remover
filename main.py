@@ -115,14 +115,21 @@ def parse_spec(spec: str, capture: bool = False) -> str:
     full_spec = "".join(parsed_elem_list)
     return full_spec
 
+def give_prefixes(prefix: str = None, suffix: str =None) -> tuple[str, str]:
+    """
+    Start: aGGTCTCaA
+    End:   GCTTtGAGACCt
+    """
+    if prefix is None:
+        prefix = "aGGTCTCaA"
+    if suffix is None:
+        suffix = "GCTTtGAGACCt"
+
+    return prefix, suffix
+
 
 def add_restriction_sites(seq: str) -> str:
-    """
-    Start: aGGTCTCa
-    End:   tGAGACCa
-    """
-    prefix = "aGGTCTCa"
-    suffix = "tGAGACCa"
+    prefix, suffix = give_prefixes()
     new_seq = prefix + seq + suffix
     return new_seq
 
@@ -143,9 +150,15 @@ def replace_codons(seq: list[str], indices: tuple[int, int], codon: str) -> list
 def sequence_transform_factory(
         func: Callable[[list[str], tuple[int, int], str], list[str]],
         degron_spec: str, codon: str,
-        add_prefix: bool = True
+        add_prefix: bool = True, has_prefix: bool = True,
 ) -> Callable[[str], str]:
     def sequence_transform(seq: str) -> str:
+        # optionally strip prefixes first
+        if has_prefix:
+            add_prefix = True
+            prefix, suffix = give_prefixes()
+            seq = seq[len(prefix):-len(suffix)]
+
         # translate to protein sequence
         prot_seq = translate(seq)
 
@@ -185,7 +198,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Remove degrons and replace with poly-Alanines')
     parser.add_argument('filepath', metavar='filepath', type=str,
                         help='filepath to DNA sequences (.xlsx or .csv)')
-    parser.add_argument('--colname', type=str, default="Bases",
+    parser.add_argument('--has_prefix', type=bool, default=False, help="Do the DNA sequences already have prefixes?")
+    parser.add_argument('--colname', type=str, default="Sequence",
                         help='column name with DNA seqeunces (default: Bases', required=False)
     parser.add_argument('--degron', type=str, default="[VI]-GWPP-[VIHSK]-[GR]-xx-R",
                         help='degron sequence to remove (default: [VI]-GWPP-[VIHSK]-[GR]-xx-R)', required=False)
@@ -197,6 +211,7 @@ if __name__ == "__main__":
     # parse and process args
     filepath = args.filepath
     old_sequences = get_sequences_from_file(filepath)
+    has_prefixes = args.has_prefix
     degron_spec = parse_spec(args.degron)
     codon = args.codon
     colname = args.colname
