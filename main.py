@@ -200,7 +200,7 @@ if __name__ == "__main__":
                         help='filepath to DNA sequences (.xlsx or .csv)')
     parser.add_argument('--has_prefix', type=bool, default=False, help="Do the DNA sequences already have prefixes?")
     parser.add_argument('--colname', type=str, default="Sequence",
-                        help='column name with DNA seqeunces (default: Bases', required=False)
+                        help='column name with DNA seqeunces (default: Sequences', required=False)
     parser.add_argument('--degron', type=str, default="[VI]-GWPP-[VIHSK]-[GR]-xx-R",
                         help='degron sequence to remove (default: [VI]-GWPP-[VIHSK]-[GR]-xx-R)', required=False)
     parser.add_argument('--codon', type=str, default="GCA",
